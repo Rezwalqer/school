@@ -43,7 +43,7 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getAllStudents());
     }
 
-    @PostMapping //POST http://localhost:8080/student
+    @PostMapping
     public Student createStudent(@RequestBody Student student) {
         return studentService.createStudent(student);
     }
