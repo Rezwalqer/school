@@ -28,7 +28,7 @@ public class HouseController {
 
     @GetMapping("/color/{color}")
     public ResponseEntity<Collection<Faculty>> getFacultiesByColor(@PathVariable String color) {
-        Collection<Faculty> faculties = houseService.getFacultiesByColor(color);
+        Collection<Faculty> faculties = houseService.findFacultiesByColorIgnoreCase(color);
         if (faculties == null) {
             return ResponseEntity.notFound().build();
         }
@@ -55,7 +55,8 @@ public class HouseController {
     }
 
     @DeleteMapping("{id}")
-    public Faculty deleteFaculty(@PathVariable Long id) {
-        return houseService.deleteFaculty(id);
+    public ResponseEntity deleteFaculty(@PathVariable Long id) {
+        houseService.deleteFaculty(id);
+        return ResponseEntity.ok().build();
     }
 }
