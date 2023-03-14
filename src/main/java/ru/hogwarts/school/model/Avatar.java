@@ -22,7 +22,7 @@ public class Avatar {
     private String mediaType;
     @Lob
     @Column(name = "data")
-    byte[] data;
+    private byte[] data;
     @OneToOne
     private Student student;
 
