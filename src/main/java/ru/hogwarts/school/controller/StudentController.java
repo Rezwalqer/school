@@ -1,8 +1,11 @@
 package ru.hogwarts.school.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.hogwarts.school.dto.FacultyDTO;
+import ru.hogwarts.school.dto.StudentDTO;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
 
@@ -20,46 +23,60 @@ public class StudentController {
         this.studentService = studentService;
     }
 
-    @GetMapping("{id}") //GET http://localhost:8080/student/1
-    public ResponseEntity<Student> getStudentInfo(@PathVariable Long id) {
-        Student student = studentService.findStudent(id);
-        if (student == null) {
+    @GetMapping("{id}")
+    public ResponseEntity<StudentDTO> getStudentInfo(@PathVariable Long id) {
+        StudentDTO studentDTO = studentService.findStudent(id);
+        if (studentDTO == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(student);
-    }
-
-    @GetMapping("/age/{age}")
-    public ResponseEntity<Collection<Student>> getStudentsByAge(@PathVariable int age) {
-        Collection<Student> students = studentService.findStudentsByAge(age);
-        if (students.size() == 0) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(students);
+        return ResponseEntity.ok(studentDTO);
     }
 
     @GetMapping
-    public ResponseEntity<Collection<Student>> getAllStudents() {
+    public ResponseEntity<Collection<StudentDTO>> getAllStudents(
+            @RequestParam(required = false) Integer age,
+            @RequestParam(required = false) Integer minAge,
+            @RequestParam(required = false) Integer maxAge) {
+        if (minAge != null && minAge > 0 && maxAge != null && maxAge > 0) {
+            return ResponseEntity.ok(studentService.findStudentsByAgeBetween(minAge, maxAge));
+        }
+        if (age != null && age > 0) {
+            return ResponseEntity.ok(studentService.findStudentsByAge(age));
+        }
         return ResponseEntity.ok(studentService.getAllStudents());
     }
 
     @PostMapping
-    public Student createStudent(@RequestBody Student student) {
-        return studentService.createStudent(student);
+    public ResponseEntity<StudentDTO> createStudent(@RequestBody StudentDTO studentDTO) {
+        StudentDTO createdStudentDTO = studentService.createStudent(studentDTO);
+        if (studentDTO.getFacultyId() == null) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdStudentDTO);
     }
 
-    @PutMapping
-    public ResponseEntity<Student> editStudent(@RequestBody Student student) {
-        Student newStudent = studentService.editStudent(student);
-        if (newStudent == null) {
+    @PutMapping("{id}")
+    public ResponseEntity<StudentDTO> updateStudent(@PathVariable Long id, @RequestBody StudentDTO studentDTO) {
+        StudentDTO updatedStudentDTO = studentService.updateStudent(id, studentDTO);
+        if (updatedStudentDTO == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(newStudent);
+        return ResponseEntity.ok(updatedStudentDTO);
     }
 
+
     @DeleteMapping("{id}")
-    public ResponseEntity deleteStudent(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
         studentService.deleteStudent(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("{studentId}/faculty")
+    public ResponseEntity<FacultyDTO> findFacultyByStudentId(@PathVariable Long studentId) {
+        FacultyDTO facultyDTO = studentService.getFacultyByStudentId(studentId);
+        if (facultyDTO == null) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return ResponseEntity.ok(facultyDTO);
     }
 }
