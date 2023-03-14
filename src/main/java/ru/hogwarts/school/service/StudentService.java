@@ -1,5 +1,6 @@
 package ru.hogwarts.school.service;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.hogwarts.school.dto.FacultyDTO;
 import ru.hogwarts.school.dto.StudentDTO;
@@ -8,10 +9,7 @@ import ru.hogwarts.school.repository.FacultyRepository;
 import ru.hogwarts.school.repository.StudentRepository;
 import ru.hogwarts.school.model.Student;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,20 +49,32 @@ public class StudentService {
         studentRepository.deleteById(id);
     }
 
-    public List<StudentDTO> getAllStudents() {
-        return studentRepository.findAll().stream()
+    public List<StudentDTO> getAllStudents(Integer pageNumber, Integer pageSize) {
+        if (pageSize > 50 || pageSize < 0 || pageSize == 0) {
+            pageSize = 50;
+        }
+        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize);
+        return studentRepository.findAll(pageRequest).getContent().stream()
                 .map(StudentDTO::fromStudent)
                 .collect(Collectors.toList());
     }
 
-    public List<StudentDTO> findStudentsByAge(int age) {
-        return studentRepository.findStudentsByAge(age).stream()
+    public List<StudentDTO> findStudentsByAge(int age, Integer pageNumber, Integer pageSize) {
+        if (pageSize > 50 || pageSize < 0 || pageSize == 0) {
+            pageSize = 50;
+        }
+        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize);
+        return studentRepository.findStudentsByAge(age, pageRequest).stream()
                 .map(StudentDTO::fromStudent)
                 .collect(Collectors.toList());
     }
 
-    public List<StudentDTO> findStudentsByAgeBetween(int fromAge, int toAge) {
-        return studentRepository.findStudentsByAgeBetween(fromAge, toAge).stream()
+    public List<StudentDTO> findStudentsByAgeBetween(int fromAge, int toAge, Integer pageNumber, Integer pageSize) {
+        if (pageSize > 50 || pageSize < 0 || pageSize == 0) {
+            pageSize = 50;
+        }
+        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize);
+        return studentRepository.findStudentsByAgeBetween(fromAge, toAge, pageRequest).stream()
                 .map(StudentDTO::fromStudent)
                 .collect(Collectors.toList());
     }
@@ -72,5 +82,18 @@ public class StudentService {
     public FacultyDTO getFacultyByStudentId(Long id) {
         Faculty faculty = facultyRepository.findById(findStudent(id).getFacultyId()).get();
         return FacultyDTO.fromFaculty(faculty);
+    }
+
+    public Long getCountOfStudents() {
+        return studentRepository.getCountOfStudents();
+    }
+    public  Double getAverageAge() {
+        return studentRepository.getAverageAge();
+    }
+
+    public List<StudentDTO> findYoungestStudents() {
+        return studentRepository.findYoungestStudents().stream()
+                .map(StudentDTO::fromStudent)
+                .collect(Collectors.toList());
     }
 }

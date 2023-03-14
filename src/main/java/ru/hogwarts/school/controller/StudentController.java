@@ -12,6 +12,7 @@ import ru.hogwarts.school.service.StudentService;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("student")
@@ -36,16 +37,18 @@ public class StudentController {
 
     @GetMapping
     public ResponseEntity<Collection<StudentDTO>> getAllStudents(
+            @RequestParam("page") Integer pageNumber,
+            @RequestParam("size") Integer pageSize,
             @RequestParam(required = false) Integer age,
             @RequestParam(required = false) Integer minAge,
             @RequestParam(required = false) Integer maxAge) {
         if (minAge != null && minAge > 0 && maxAge != null && maxAge > 0) {
-            return ResponseEntity.ok(studentService.findStudentsByAgeBetween(minAge, maxAge));
+            return ResponseEntity.ok(studentService.findStudentsByAgeBetween(minAge, maxAge, pageNumber, pageSize));
         }
         if (age != null && age > 0) {
-            return ResponseEntity.ok(studentService.findStudentsByAge(age));
+            return ResponseEntity.ok(studentService.findStudentsByAge(age, pageNumber, pageSize));
         }
-        return ResponseEntity.ok(studentService.getAllStudents());
+        return ResponseEntity.ok(studentService.getAllStudents(pageNumber, pageSize));
     }
 
     @PostMapping
@@ -81,5 +84,19 @@ public class StudentController {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         return ResponseEntity.ok(facultyDTO);
+    }
+
+    @GetMapping("/total-count")
+    public Long getCountOfStudents() {
+        return studentService.getCountOfStudents();
+    }
+    @GetMapping("/average-age")
+    public ResponseEntity<Double> getAverageAge() {
+        return ResponseEntity.ok(studentService.getAverageAge());
+    }
+
+    @GetMapping("/youngest")
+    public ResponseEntity<List<StudentDTO>> findYoungestStudents() {
+        return ResponseEntity.ok(studentService.findYoungestStudents());
     }
 }
