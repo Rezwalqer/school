@@ -21,6 +21,9 @@ public class Student {
     private String name;
     @Column(name = "student_age")
     private int age;
+    @OneToOne
+//    @JoinColumn(name = "avatar_id")
+    private Avatar avatar;
 
 
 }
